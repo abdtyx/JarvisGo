@@ -1,0 +1,6 @@
+data
+logs
+*.encrypt
+config.yml
+device.json
+
