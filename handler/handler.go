@@ -1,33 +1,42 @@
 package handler
 
 import (
-	"log"
-
 	"github.com/abdtyx/JarvisGo/service"
 	"github.com/gin-gonic/gin"
 )
 
-func Handler(c *gin.Context) {
-	var msg service.Message
-	l := log.Default()
-	err := c.BindJSON(&msg)
+type Handler struct {
+	svc *service.Service
+}
+
+func InitHandler() (*Handler, error) {
+	var h Handler
+	var err error
+
+	h.svc, err = service.InitService()
 	if err != nil {
-		l.Println(err)
+		return nil, err
 	}
 
-	MsgHandler(msg)
+	return &h, nil
+}
+
+func (h *Handler) Handle(c *gin.Context) {
+	var msg service.Message
+	err := c.BindJSON(&msg)
+	if err != nil {
+		h.svc.Log.Println(err)
+	}
+
+	h.MsgHandler(msg)
 
 	return
 }
 
-func MsgHandler(msg service.Message) {
-	l := log.Default()
+func (h *Handler) MsgHandler(msg service.Message) {
 	switch {
 	case msg.RawMsg == "Jarvis":
-		err := service.Jarvis(msg)
-		if err != nil {
-			l.Println(err)
-		}
+		h.svc.Jarvis(msg)
 	}
 	return
 }

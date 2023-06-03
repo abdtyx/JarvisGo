@@ -1,6 +1,6 @@
 data
 logs
 *.encrypt
-config.yml
+*.yml
 device.json
-
+*.log

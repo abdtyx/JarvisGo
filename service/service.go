@@ -2,10 +2,19 @@ package service
 
 import (
 	"errors"
+	"log"
+	"os"
 	"strings"
+	"time"
 
+	"github.com/abdtyx/JarvisGo/config"
 	"github.com/abdtyx/JarvisGo/message"
 )
+
+type Service struct {
+	cfg *config.Config
+	Log *log.Logger
+}
 
 type Message struct {
 	MsgType string `json:"message_type"`
@@ -14,12 +23,39 @@ type Message struct {
 	RawMsg  string `json:"raw_message"`
 }
 
-func Jarvis(msg Message) error {
+func InitService() (*Service, error) {
+	var svc Service
+	var err error
+
+	svc.cfg, err = config.LoadConfig()
+	if err != nil {
+		return nil, err
+	}
+
+	svc.Log = log.Default()
+	f, err := os.OpenFile("./"+time.Now().String()+".log", os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0644)
+	if err != nil {
+		return nil, err
+	}
+
+	svc.Log.SetOutput(f)
+
+	return &svc, nil
+}
+
+func (svc *Service) Jarvis(msg Message) {
+	var err error
 	if msg.MsgType == "private" {
-		return message.PrivateMsg(msg.UserID, "I'm here, sir.")
-	} else if msg.MsgType == "group" {
-		return message.GroupMsg(msg.UserID, msg.GroupID, "?")
+		err = message.PrivateMsg(msg.UserID, "I'm here, sir.")
+	} else if svc.cfg.EnableGroup && msg.MsgType == "group" {
+		err = message.GroupMsg(msg.UserID, msg.GroupID, "?")
 	} else {
-		return errors.New(strings.ToTitle("Jarvis: Invalid message type"))
+		err = errors.New(strings.ToTitle("Jarvis: Invalid message type"))
+	}
+
+	if err != nil {
+		svc.Log.Println(err)
+	} else {
+		svc.Log.Println(err.Error())
 	}
 }
