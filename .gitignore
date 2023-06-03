@@ -4,3 +4,4 @@ logs
 *.yml
 device.json
 *.log
+go-cqhttp
