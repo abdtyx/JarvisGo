@@ -5,3 +5,4 @@ logs
 device.json
 *.log
 go-cqhttp
+session.token

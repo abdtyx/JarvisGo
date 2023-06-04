@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"net/url"
 	"strings"
 )
 
@@ -20,11 +21,13 @@ func Msg(userID int64, groupID int64, message string, enableGroup bool) error {
 }
 
 func PrivateMsg(userID int64, message string) error {
+	message = url.QueryEscape(message)
 	http.Get(fmt.Sprintf("http://127.0.0.1:5700/send_private_msg?user_id=%v&message=%v&auto_escape=false", userID, message))
 	return errors.New(strings.ToTitle(message))
 }
 
 func GroupMsg(userID, groupID int64, message string) error {
+	message = url.QueryEscape(message)
 	http.Get(fmt.Sprintf("http://127.0.0.1:5700/send_group_msg?group_id=%v&message=[CQ:at,qq=%v]%%0A%v&auto_escape=false", groupID, userID, message))
 	return errors.New(strings.ToTitle(message))
 }

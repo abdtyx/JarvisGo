@@ -30,6 +30,11 @@ func (h *Handler) Handle(c *gin.Context) {
 
 	h.MsgHandler(msg)
 
+	// This is a placeholder to make gin happy:)
+	c.JSON(200, gin.H{
+		"html": "<b>Hello, world!</b>",
+	})
+
 	return
 }
 
