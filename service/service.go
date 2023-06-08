@@ -33,7 +33,7 @@ func InitService() (*Service, error) {
 	}
 
 	svc.Log = log.Default()
-	f, err := os.OpenFile("./"+time.Now().String()+".log", os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0644)
+	f, err := os.OpenFile("./jlogs/"+time.Now().String()+".log", os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0644)
 	if err != nil {
 		return nil, err
 	}

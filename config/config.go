@@ -3,8 +3,8 @@ package config
 import "github.com/spf13/viper"
 
 type Config struct {
-	EnableGroup bool    `yaml:"enable-group"`
-	Masters     []int64 `yaml:"masters"`
+	EnableGroup bool    `mapstructure:"enable-group"`
+	Masters     []int64 `mapstructure:"masters"`
 }
 
 func LoadConfig() (*Config, error) {

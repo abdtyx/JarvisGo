@@ -1,5 +1,6 @@
 data
 logs
+jlogs
 *.encrypt
 *.yml
 device.json
