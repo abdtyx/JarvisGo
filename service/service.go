@@ -2,6 +2,7 @@ package service
 
 import (
 	"errors"
+	"fmt"
 	"log"
 	"os"
 	"strings"
@@ -43,19 +44,43 @@ func InitService() (*Service, error) {
 	return &svc, nil
 }
 
-func (svc *Service) Jarvis(msg Message) {
+func (svc *Service) SendAndLogMsg(msg Message, privateResp, groupResp, signature string) {
 	var err error
-	if msg.MsgType == "private" {
-		err = message.PrivateMsg(msg.UserID, "I'm here, sir.")
-	} else if svc.cfg.EnableGroup && msg.MsgType == "group" {
-		err = message.GroupMsg(msg.UserID, msg.GroupID, "?")
-	} else {
-		err = errors.New(strings.ToTitle("Jarvis: Invalid message type"))
+	isGroup := true
+	signature += ": "
+
+	// Send message
+	switch msg.MsgType {
+	case "private":
+		err = message.PrivateMsg(msg.UserID, privateResp)
+		isGroup = false
+	case "group":
+		if svc.cfg.EnableGroup {
+			err = message.GroupMsg(msg.UserID, msg.GroupID, groupResp)
+		} else {
+			err = errors.New(strings.ToTitle("Service: Group message not enabled"))
+		}
+	default:
+		err = errors.New(strings.ToTitle("Service: Invalid message type: " + msg.MsgType))
 	}
 
+	// Log message
 	if err != nil {
-		svc.Log.Println(err)
+		svc.Log.Println(signature, err)
 	} else {
-		svc.Log.Println(err.Error())
+		if isGroup {
+			svc.Log.Println(signature, fmt.Sprintf("Group(%v) message sent to %v: ", msg.GroupID, msg.UserID), groupResp)
+		} else {
+			svc.Log.Println(signature, fmt.Sprintf("Private message sent to %v: ", msg.UserID), privateResp)
+		}
 	}
+
+}
+
+func (svc *Service) Jarvis(msg Message) {
+	privateResp := "I'm here, sir."
+	groupResp := "?"
+	sig := "Jarvis"
+
+	svc.SendAndLogMsg(msg, privateResp, groupResp, sig)
 }

@@ -25,7 +25,7 @@ func (h *Handler) Handle(c *gin.Context) {
 	var msg service.Message
 	err := c.BindJSON(&msg)
 	if err != nil {
-		h.svc.Log.Println(err)
+		h.svc.Log.Println("Handler: ", err)
 	}
 
 	h.MsgHandler(msg)
