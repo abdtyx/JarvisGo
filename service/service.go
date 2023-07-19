@@ -3,6 +3,7 @@ package service
 import (
 	"errors"
 	"fmt"
+	"io/ioutil"
 	"log"
 	"os"
 	"strings"
@@ -13,7 +14,7 @@ import (
 )
 
 type Service struct {
-	cfg *config.Config
+	Cfg *config.Config
 	Log *log.Logger
 }
 
@@ -28,7 +29,7 @@ func InitService() (*Service, error) {
 	var svc Service
 	var err error
 
-	svc.cfg, err = config.LoadConfig()
+	svc.Cfg, err = config.LoadConfig()
 	if err != nil {
 		return nil, err
 	}
@@ -55,10 +56,10 @@ func (svc *Service) SendAndLogMsg(msg Message, privateResp, groupResp, signature
 		err = message.PrivateMsg(msg.UserID, privateResp)
 		isGroup = false
 	case "group":
-		if svc.cfg.EnableGroup {
+		if svc.Cfg.EnableGroup {
 			err = message.GroupMsg(msg.UserID, msg.GroupID, groupResp)
 		} else {
-			err = errors.New(strings.ToTitle("Service: Group message not enabled"))
+			err = errors.New(strings.ToTitle("Service: Group message not enabled (should not reach here)"))
 		}
 	default:
 		err = errors.New(strings.ToTitle("Service: Invalid message type: " + msg.MsgType))
@@ -104,4 +105,12 @@ func (svc *Service) Api(msg Message) {
 	sig := "Api"
 
 	svc.SendAndLogMsg(msg, resp, resp, sig)
+}
+
+func (svc *Service) CheckBlacklist(msg Message) bool {
+	// acquire rwlock
+	// open blacklist file
+	ioutil.ReadFile(svc.Cfg.WorkingDirectory + "data/blacklist.txt")
+	// for _, v := range b
+	return false
 }

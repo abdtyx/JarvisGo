@@ -1,3 +1,4 @@
 enable-group: true
 masters:
   - 12345678
+working-directory: /home/abdtyx/code/JarvisGo/

@@ -1,6 +1,8 @@
 package handler
 
 import (
+	"fmt"
+
 	"github.com/abdtyx/JarvisGo/service"
 	"github.com/gin-gonic/gin"
 )
@@ -39,7 +41,21 @@ func (h *Handler) Handle(c *gin.Context) {
 }
 
 func (h *Handler) MsgHandler(msg service.Message) {
+	// handle group msg not enabled
+	if msg.MsgType == "group" && h.svc.Cfg.EnableGroup == false {
+		h.svc.Log.Println("Handler: Group message not enabled")
+	}
+
 	// handle blacklist
+	if h.svc.CheckBlacklist(msg) {
+		groupTag := ""
+		if msg.MsgType == "group" {
+			groupTag += fmt.Sprintf("From group %v:", msg.GroupID)
+		} else {
+			groupTag += "Not from group: "
+		}
+		h.svc.Log.Println(groupTag + fmt.Sprintf("Sir, a prohibited user %v tried to access my service", msg.UserID))
+	}
 
 	// handle msg
 	switch {
@@ -47,6 +63,9 @@ func (h *Handler) MsgHandler(msg service.Message) {
 		h.svc.Jarvis(msg)
 	case msg.RawMsg == ".help":
 		h.svc.Jhelp(msg)
+	case msg.RawMsg == ".api":
+		h.svc.Api(msg)
 	}
+
 	return
 }

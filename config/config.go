@@ -3,8 +3,9 @@ package config
 import "github.com/spf13/viper"
 
 type Config struct {
-	EnableGroup bool    `mapstructure:"enable-group"`
-	Masters     []int64 `mapstructure:"masters"`
+	EnableGroup      bool    `mapstructure:"enable-group"`
+	Masters          []int64 `mapstructure:"masters"`
+	WorkingDirectory string  `mapstructure:"working-directory"`
 }
 
 func LoadConfig() (*Config, error) {
@@ -21,6 +22,9 @@ func LoadConfig() (*Config, error) {
 	if err != nil {
 		return nil, err
 	}
+
+	// manually check some fields of config
+	// back slash of WorkingDirectory
 
 	return &config, nil
 }
