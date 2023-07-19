@@ -39,9 +39,14 @@ func (h *Handler) Handle(c *gin.Context) {
 }
 
 func (h *Handler) MsgHandler(msg service.Message) {
+	// handle blacklist
+
+	// handle msg
 	switch {
 	case msg.RawMsg == "Jarvis":
 		h.svc.Jarvis(msg)
+	case msg.RawMsg == ".help":
+		h.svc.Jhelp(msg)
 	}
 	return
 }
