@@ -25,6 +25,11 @@ func LoadConfig() (*Config, error) {
 
 	// manually check some fields of config
 	// back slash of WorkingDirectory
+	if len(config.WorkingDirectory) == 0 {
+		config.WorkingDirectory += "./"
+	} else if config.WorkingDirectory[len(config.WorkingDirectory)-1] != '/' {
+		config.WorkingDirectory += "/"
+	}
 
 	return &config, nil
 }

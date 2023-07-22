@@ -28,6 +28,7 @@ func (h *Handler) Handle(c *gin.Context) {
 	err := c.BindJSON(&msg)
 	if err != nil {
 		h.svc.Log.Println("Handler: ", err)
+		return
 	}
 
 	h.MsgHandler(msg)
@@ -44,10 +45,13 @@ func (h *Handler) MsgHandler(msg service.Message) {
 	// handle group msg not enabled
 	if msg.MsgType == "group" && h.svc.Cfg.EnableGroup == false {
 		h.svc.Log.Println("Handler: Group message not enabled")
+		return
 	}
 
 	// handle blacklist
-	if h.svc.CheckBlacklist(msg) {
+	if userFlag, groupFlag := h.svc.CheckBlacklist(msg); groupFlag {
+		return
+	} else if userFlag {
 		groupTag := ""
 		if msg.MsgType == "group" {
 			groupTag += fmt.Sprintf("From group %v:", msg.GroupID)
@@ -55,6 +59,7 @@ func (h *Handler) MsgHandler(msg service.Message) {
 			groupTag += "Not from group: "
 		}
 		h.svc.Log.Println(groupTag + fmt.Sprintf("Sir, a prohibited user %v tried to access my service", msg.UserID))
+		return
 	}
 
 	// handle msg

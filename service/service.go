@@ -1,11 +1,13 @@
 package service
 
 import (
+	"encoding/hex"
 	"errors"
 	"fmt"
 	"io/ioutil"
 	"log"
 	"os"
+	"strconv"
 	"strings"
 	"time"
 
@@ -14,8 +16,10 @@ import (
 )
 
 type Service struct {
-	Cfg *config.Config
-	Log *log.Logger
+	Cfg            *config.Config
+	Log            *log.Logger
+	userBlacklist  []string
+	groupBlacklist []string
 }
 
 type Message struct {
@@ -29,18 +33,23 @@ func InitService() (*Service, error) {
 	var svc Service
 	var err error
 
+	// Load config
 	svc.Cfg, err = config.LoadConfig()
 	if err != nil {
 		return nil, err
 	}
 
+	// Initialize logger
 	svc.Log = log.Default()
-	f, err := os.OpenFile("./jlogs/"+time.Now().String()+".log", os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0644)
+	f, err := os.OpenFile(svc.Cfg.WorkingDirectory+"jlogs/"+time.Now().String()+".log", os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0644)
 	if err != nil {
 		return nil, err
 	}
 
 	svc.Log.SetOutput(f)
+
+	// Initialize blacklist, skip if error
+	svc.readBlacklist()
 
 	return &svc, nil
 }
@@ -107,10 +116,64 @@ func (svc *Service) Api(msg Message) {
 	svc.SendAndLogMsg(msg, resp, resp, sig)
 }
 
-func (svc *Service) CheckBlacklist(msg Message) bool {
-	// acquire rwlock
-	// open blacklist file
-	ioutil.ReadFile(svc.Cfg.WorkingDirectory + "data/blacklist.txt")
-	// for _, v := range b
+func (svc *Service) CheckBlacklist(msg Message) (userFlag, groupFlag bool) {
+	// check member one by one
+	userFlag = false
+	groupFlag = false
+
+	for _, v := range svc.userBlacklist {
+		if v == strconv.FormatInt(msg.UserID, 10) {
+			userFlag = true
+			break
+		}
+	}
+
+	if msg.MsgType == "group" && svc.Cfg.EnableGroup {
+		for _, v := range svc.groupBlacklist {
+			if v == strconv.FormatInt(msg.GroupID, 10) {
+				groupFlag = true
+				break
+			}
+		}
+	}
+	return userFlag, groupFlag
+}
+
+/**
+* TODO:
+* prior msg not sent to group
+ */
+func (svc *Service) checkMaster(msg Message) bool {
+	for _, v := range svc.Cfg.Masters {
+		if v == msg.UserID {
+			return true
+		}
+	}
 	return false
 }
+
+func (svc *Service) readBlacklist() {
+	// open blacklist file, then read from blacklist
+	userBlacklistByte, err := ioutil.ReadFile(svc.Cfg.WorkingDirectory + "jdata/UserBlacklist.txt")
+	if err != nil {
+		svc.userBlacklist = nil
+		svc.Log.Println("CheckBlacklist: ", err)
+		return
+	}
+	blacklist := hex.EncodeToString(userBlacklistByte)
+	svc.userBlacklist = strings.Split(blacklist, "\n")
+
+	groupBlacklistByte, err := ioutil.ReadFile(svc.Cfg.WorkingDirectory + "jdata/GroupBlacklist.txt")
+	if err != nil {
+		svc.groupBlacklist = nil
+		svc.Log.Println("CheckBlacklist: ", err)
+		return
+	}
+	blacklist = hex.EncodeToString(groupBlacklistByte)
+	svc.groupBlacklist = strings.Split(blacklist, "\n")
+}
+
+/*
+* TODO:
+* Blacklist write back on terminating with signal handler
+ */
