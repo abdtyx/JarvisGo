@@ -173,7 +173,22 @@ func (svc *Service) readBlacklist() {
 	svc.groupBlacklist = strings.Split(blacklist, "\n")
 }
 
+func (svc *Service) writeBlacklist() {
+	// open blacklist file, then write to blacklist
+	toWrite := strings.Join(svc.userBlacklist, "\n")
+	ioutil.WriteFile(svc.Cfg.WorkingDirectory+"jdata/UserBlacklist.txt", []byte(toWrite), 0644)
+
+	toWrite = strings.Join(svc.groupBlacklist, "\n")
+	ioutil.WriteFile(svc.Cfg.WorkingDirectory+"jdata/GroupBlacklist.txt", []byte(toWrite), 0644)
+}
+
 /*
-* TODO:
+* DONE:
 * Blacklist write back on terminating with signal handler
  */
+func (svc *Service) Shutdown() {
+	svc.Log.Println("Received interrupt or terminate signal.")
+	// Save blacklist
+	svc.writeBlacklist()
+	return
+}
