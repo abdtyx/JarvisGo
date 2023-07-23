@@ -14,6 +14,7 @@ func main() {
 	// Initialize handler
 	h, err := handler.InitHandler()
 	if err != nil {
+		log.Println(err)
 		log.Fatalln("main: Failed to initialize handler")
 	}
 

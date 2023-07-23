@@ -2,6 +2,7 @@ package handler
 
 import (
 	"fmt"
+	"regexp"
 
 	"github.com/abdtyx/JarvisGo/service"
 	"github.com/gin-gonic/gin"
@@ -74,7 +75,36 @@ func (h *Handler) MsgHandler(msg service.Message) {
 		h.svc.Jhelp(msg)
 	case msg.RawMsg == ".api":
 		h.svc.Api(msg)
+	case msg.RawMsg == ".Jeminder":
+
+	case regMatch(`^\.blacklist`, msg.RawMsg):
+
+	case regMatch(`^\.pic rsa`, msg.RawMsg):
+
+	case regMatch(`^\.pic`, msg.RawMsg):
+
+	case regMatch(`^\.timetable`, msg.RawMsg):
+
+	case regMatch(`^\.weather`, msg.RawMsg):
+
+	case regMatch(`^\.suggest`, msg.RawMsg):
+
+	case regMatch(`^\.log`, msg.RawMsg):
+
+	case regMatch(`^\.clog`, msg.RawMsg):
+
+	case regMatch(`^\.dlog`, msg.RawMsg):
+
+	case regMatch(`^\.Hocation`, msg.RawMsg):
+
+	case regMatch(`^\.usd`, msg.RawMsg):
+
 	}
 
 	return
+}
+
+func regMatch(pattern, rawMsg string) bool {
+	re := regexp.MustCompile(pattern)
+	return re.MatchString(rawMsg)
 }

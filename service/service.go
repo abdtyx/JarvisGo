@@ -104,16 +104,76 @@ func (svc *Service) Jhelp(msg Message) {
 
 func (svc *Service) Api(msg Message) {
 	resp := "Sir, you have chosen to see functions available now. I list them out for you."
-	requireTable := "%0A%0AGet your timetable(only for xjtu): %0AFormat is as follows: %0A.require table%0AYour username%0AYour password%0AExample: %0A.require table%0A123456%0A123456"
+	timetable := "%0A%0AGet your timetable(only for xjtu): %0AFormat is as follows: %0A.timetable%0AYour username%0AYour password%0AExample: %0A.require table%0A123456%0A123456"
 	weather := "%0A%0AGet region weather: %0AFormat is as follows: %0A.weather region (superior administrative division of the region)%0AExamples: %0A.weather 西安%0A.weather 海淀 北京"
 	endl := "%0A"
 	_log := endl + endl + "Make a log: " + endl + "Format is as follows: " + endl + ".log Your words here" + endl + "Example: " + endl + ".log I have a record to record."
 	clog := endl + endl + "Check your log: " + endl + "Format is as follows: " + endl + ".clog (year-month-day)" + endl + ".clog [six characters in front of a specific log]" + endl + "Examples: " + endl + ".clog" + endl + ".clog 2022-1-5" + endl + ".clog 99a5b3"
 	dlog := endl + endl + "Delete a log: " + endl + "Format is as follows: " + endl + ".dlog [six characters in front of a specific log]" + endl + "Example: " + endl + ".dlog 99a5b3"
-	resp = resp + requireTable + weather + _log + clog + dlog
+	resp = resp + timetable + weather + _log + clog + dlog
 	sig := "Api"
 
 	svc.SendAndLogMsg(msg, resp, resp, sig)
+}
+
+func (svc *Service) Jeminder(msg Message) {
+	// TODO:
+	return
+}
+
+func (svc *Service) Blacklist(msg Message) {
+	// TODO:
+	return
+}
+
+func (svc *Service) Pic(msg Message) {
+	// TODO:
+	return
+}
+
+func (svc *Service) PicRsa(msg Message) {
+	// TODO:
+	return
+}
+
+func (svc *Service) timetable(msg Message) {
+	// TODO:
+	return
+}
+
+func (svc *Service) Weather(msg Message) {
+	// TODO:
+	return
+}
+
+func (svc *Service) Suggest(msg Message) {
+	// TODO:
+	return
+}
+
+func (svc *Service) Jlog(msg Message) {
+	// TODO:
+	return
+}
+
+func (svc *Service) Clog(msg Message) {
+	// TODO:
+	return
+}
+
+func (svc *Service) Dlog(msg Message) {
+	// TODO:
+	return
+}
+
+func (svc *Service) Hocation(msg Message) {
+	// TODO:
+	return
+}
+
+func (svc *Service) Usd(msg Message) {
+	// TODO:
+	return
 }
 
 func (svc *Service) CheckBlacklist(msg Message) (userFlag, groupFlag bool) {
@@ -140,8 +200,9 @@ func (svc *Service) CheckBlacklist(msg Message) (userFlag, groupFlag bool) {
 }
 
 /**
-* TODO:
-* prior msg not sent to group
+ * TODO:
+ * prior msg not sent to group
+ * i.e., permission handler
  */
 func (svc *Service) checkMaster(msg Message) bool {
 	for _, v := range svc.Cfg.Masters {
@@ -183,8 +244,8 @@ func (svc *Service) writeBlacklist() {
 }
 
 /*
-* DONE:
-* Blacklist write back on terminating with signal handler
+ * DONE:
+ * Blacklist write back on terminating with signal handler
  */
 func (svc *Service) Shutdown() {
 	svc.Log.Println("Received interrupt or terminate signal.")
