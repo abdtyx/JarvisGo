@@ -39,6 +39,9 @@ func InitService() (*Service, error) {
 		return nil, err
 	}
 
+	// Print config for confirmation
+	svc.Cfg.PrintConfig()
+
 	// Initialize logger
 	svc.Log = log.Default()
 	f, err := os.OpenFile(svc.Cfg.WorkingDirectory+"jlogs/"+time.Now().String()+".log", os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0644)

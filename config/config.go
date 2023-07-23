@@ -1,6 +1,11 @@
 package config
 
-import "github.com/spf13/viper"
+import (
+	"fmt"
+	"os"
+
+	"github.com/spf13/viper"
+)
 
 type Config struct {
 	EnableGroup      bool    `mapstructure:"enable-group"`
@@ -24,12 +29,29 @@ func LoadConfig() (*Config, error) {
 	}
 
 	// manually check some fields of config
-	// back slash of WorkingDirectory
+	// WorkingDirectory (wd)
+	// wd not specified
 	if len(config.WorkingDirectory) == 0 {
-		config.WorkingDirectory += "./"
-	} else if config.WorkingDirectory[len(config.WorkingDirectory)-1] != '/' {
+		config.WorkingDirectory, err = os.Getwd()
+		if err != nil {
+			return nil, err
+		}
+	}
+	// back slash of wd
+	if config.WorkingDirectory[len(config.WorkingDirectory)-1] != '/' {
 		config.WorkingDirectory += "/"
 	}
 
 	return &config, nil
+}
+
+func (cfg *Config) PrintConfig() {
+	fmt.Println("EnableGroup")
+	fmt.Println("\t", cfg.EnableGroup)
+	fmt.Println("Masters")
+	for _, v := range cfg.Masters {
+		fmt.Println("\t", v)
+	}
+	fmt.Println("WorkingDirectory")
+	fmt.Println("\t", cfg.WorkingDirectory)
 }
