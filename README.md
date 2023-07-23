@@ -35,3 +35,32 @@ We have two configuration files to edit.
   ```
 
   
+
+## Structure of JarvisGo (updated before 0d73e60)
+
+```yaml
+.
+├── cmd
+│   └── server
+│       └── main.go           # main function of Jarvis
+├── config
+│   └── config.go             # load configuration of Jarvis (JarvisConfig.yml)
+├── config.yml.example        # go-cqhttp configuration example
+├── errors
+│   └── errors.go             # placeholder, for future uses
+├── go.mod                    # go modules
+├── go.sum                    # go summary
+├── handler
+│   └── handler.go            # message handler. Receive post from gin, then resolve which service will be called
+├── JarvisConfig.yml.example  # Configuration of Jarvis
+├── message
+│   └── message.go            # helper functions to send private and group message
+├── README.md                 # PLEASE README
+├── service
+│   ├── service.go            # all services provided by Jarvis, including helper functions used by service functions
+│   └── timers.go             # timed message, which means message under this classification will be sent at a specific time
+└── start.bat                 # batch file for windows, also works for linux
+
+7 directories, 13 files
+```
+
