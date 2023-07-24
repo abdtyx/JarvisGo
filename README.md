@@ -64,3 +64,15 @@ We have two configuration files to edit.
 7 directories, 13 files
 ```
 
+## TODO List (In no particular order)
+
+* ~~Deploy docker containers, adopting agile software development.~~ Done.
+
+* Abstract Jarvis kernel, using Trie tree to optimize keyword detection. Jarvis kernel is supposed to be a skeleton bot server. Users can register their response functions using kernel methods.
+* Use MySQL to enrich Jarvis Corpus.
+* Build detailed tests to make sure JarvisGo behaves as expected. Adopting Ginkgo.
+* Activation manager for XJTUANA.
+
+## Author's words
+
+**`JarvisGo`** is an optimized and refactored version of my previous project `Jarvis (Python)`. For some reasons, `Jarvis` is not open to the public. Several months ago, after careful consideration, I decided to refactor `Jarvis` to make it faster, better, and more comprehensive. And this is what you see now, **`JarvisGo`**! Enjoy **`Jarvis`**!
