@@ -32,11 +32,17 @@ func (h *Handler) Handle(c *gin.Context) {
 		return
 	}
 
-	h.MsgHandler(msg)
+	if msg.MsgType == "" {
+		// Heartbeat event
+		service.TimedMsgHandler()
+	} else {
+		// Message event
+		h.MsgHandler(msg)
+	}
 
 	// This is a placeholder to make gin happy:)
 	c.JSON(200, gin.H{
-		"html": "<b>Hello, world!</b>",
+		"html": "<b>Jarvis! Go!</b>",
 	})
 
 	return
