@@ -12,6 +12,20 @@ type Handler struct {
 	svc *service.Service
 }
 
+var (
+	regBlacklist = regexp.MustCompile(`^\.blacklist`)
+	regPicRSA    = regexp.MustCompile(`^\.pic rsa`)
+	regPic       = regexp.MustCompile(`^\.pic`)
+	regTimetable = regexp.MustCompile(`^\.timetable`)
+	regWeather   = regexp.MustCompile(`^\.weather`)
+	regSuggest   = regexp.MustCompile(`^\.suggest`)
+	regLog       = regexp.MustCompile(`^\.log`)
+	regClog      = regexp.MustCompile(`^\.clog`)
+	regDlog      = regexp.MustCompile(`^\.dlog`)
+	regHocation  = regexp.MustCompile(`^\.Hocation`)
+	regUsd       = regexp.MustCompile(`^\.usd`)
+)
+
 func InitHandler() (*Handler, error) {
 	var h Handler
 	var err error
@@ -82,35 +96,30 @@ func (h *Handler) MsgHandler(msg service.Message) {
 	case msg.RawMsg == ".api":
 		h.svc.Api(msg)
 	case msg.RawMsg == ".Jeminder":
-
-	case regMatch(`^\.blacklist`, msg.RawMsg):
-
-	case regMatch(`^\.pic rsa`, msg.RawMsg):
-
-	case regMatch(`^\.pic`, msg.RawMsg):
-
-	case regMatch(`^\.timetable`, msg.RawMsg):
-
-	case regMatch(`^\.weather`, msg.RawMsg):
-
-	case regMatch(`^\.suggest`, msg.RawMsg):
-
-	case regMatch(`^\.log`, msg.RawMsg):
-
-	case regMatch(`^\.clog`, msg.RawMsg):
-
-	case regMatch(`^\.dlog`, msg.RawMsg):
-
-	case regMatch(`^\.Hocation`, msg.RawMsg):
-
-	case regMatch(`^\.usd`, msg.RawMsg):
-
+		h.svc.Jeminder(msg)
+	case regBlacklist.MatchString(msg.RawMsg):
+		h.svc.Blacklist(msg)
+	case regPicRSA.MatchString(msg.RawMsg):
+		h.svc.PicRsa(msg)
+	case regPic.MatchString(msg.RawMsg):
+		h.svc.Pic(msg)
+	case regTimetable.MatchString(msg.RawMsg):
+		h.svc.Timetable(msg)
+	case regWeather.MatchString(msg.RawMsg):
+		h.svc.Weather(msg)
+	case regSuggest.MatchString(msg.RawMsg):
+		h.svc.Suggest(msg)
+	case regLog.MatchString(msg.RawMsg):
+		h.svc.Jlog(msg)
+	case regClog.MatchString(msg.RawMsg):
+		h.svc.Clog(msg)
+	case regDlog.MatchString(msg.RawMsg):
+		h.svc.Dlog(msg)
+	case regHocation.MatchString(msg.RawMsg):
+		h.svc.Hocation(msg)
+	case regUsd.MatchString(msg.RawMsg):
+		h.svc.Usd(msg)
 	}
 
 	return
-}
-
-func regMatch(pattern, rawMsg string) bool {
-	re := regexp.MustCompile(pattern)
-	return re.MatchString(rawMsg)
 }

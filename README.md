@@ -71,7 +71,7 @@ We have two configuration files to edit.
 * Abstract Jarvis kernel, using Trie tree to optimize keyword detection. Jarvis kernel is supposed to be a skeleton bot server. Users can register their response functions using kernel methods.
 * Use MySQL to enrich Jarvis Corpus.
 * Build detailed tests to make sure JarvisGo behaves as expected. Adopting Ginkgo.
-* Activation manager for XJTUANA.
+* Activation code manager for XJTUANA.
 
 ## Author's words
 

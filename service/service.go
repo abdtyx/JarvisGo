@@ -4,22 +4,28 @@ import (
 	"encoding/hex"
 	"errors"
 	"fmt"
-	"io/ioutil"
 	"log"
 	"os"
 	"strconv"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/abdtyx/JarvisGo/config"
+	errdefs "github.com/abdtyx/JarvisGo/errors"
 	"github.com/abdtyx/JarvisGo/message"
 )
 
 type Service struct {
-	Cfg            *config.Config
-	Log            *log.Logger
+	Cfg *config.Config
+	Log *log.Logger
+
+	// These are shared structures, should acquire lock when **update**
 	userBlacklist  []string
 	groupBlacklist []string
+	// Locks
+	userBlacklistLock  sync.Mutex
+	groupBlacklistLock sync.Mutex
 }
 
 type Message struct {
@@ -121,6 +127,12 @@ func (svc *Service) Api(msg Message) {
 
 func (svc *Service) Jeminder(msg Message) {
 	// TODO:
+	sig := "Jeminder"
+	if !svc.checkMaster(msg) {
+		svc.Log.Println(errdefs.ErrPermissionDenied{Sig: sig, User: msg.UserID, Group: msg.GroupID})
+		return
+	}
+
 	return
 }
 
@@ -139,7 +151,7 @@ func (svc *Service) PicRsa(msg Message) {
 	return
 }
 
-func (svc *Service) timetable(msg Message) {
+func (svc *Service) Timetable(msg Message) {
 	// TODO:
 	return
 }
@@ -218,7 +230,7 @@ func (svc *Service) checkMaster(msg Message) bool {
 
 func (svc *Service) readBlacklist() {
 	// open blacklist file, then read from blacklist
-	userBlacklistByte, err := ioutil.ReadFile(svc.Cfg.WorkingDirectory + "jdata/UserBlacklist.txt")
+	userBlacklistByte, err := os.ReadFile(svc.Cfg.WorkingDirectory + "jdata/UserBlacklist.txt")
 	if err != nil {
 		svc.userBlacklist = nil
 		svc.Log.Println("CheckBlacklist: ", err)
@@ -227,7 +239,7 @@ func (svc *Service) readBlacklist() {
 	blacklist := hex.EncodeToString(userBlacklistByte)
 	svc.userBlacklist = strings.Split(blacklist, "\n")
 
-	groupBlacklistByte, err := ioutil.ReadFile(svc.Cfg.WorkingDirectory + "jdata/GroupBlacklist.txt")
+	groupBlacklistByte, err := os.ReadFile(svc.Cfg.WorkingDirectory + "jdata/GroupBlacklist.txt")
 	if err != nil {
 		svc.groupBlacklist = nil
 		svc.Log.Println("CheckBlacklist: ", err)
@@ -240,10 +252,10 @@ func (svc *Service) readBlacklist() {
 func (svc *Service) writeBlacklist() {
 	// open blacklist file, then write to blacklist
 	toWrite := strings.Join(svc.userBlacklist, "\n")
-	ioutil.WriteFile(svc.Cfg.WorkingDirectory+"jdata/UserBlacklist.txt", []byte(toWrite), 0644)
+	os.WriteFile(svc.Cfg.WorkingDirectory+"jdata/UserBlacklist.txt", []byte(toWrite), 0644)
 
 	toWrite = strings.Join(svc.groupBlacklist, "\n")
-	ioutil.WriteFile(svc.Cfg.WorkingDirectory+"jdata/GroupBlacklist.txt", []byte(toWrite), 0644)
+	os.WriteFile(svc.Cfg.WorkingDirectory+"jdata/GroupBlacklist.txt", []byte(toWrite), 0644)
 }
 
 /*
