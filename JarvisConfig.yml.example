@@ -2,3 +2,4 @@ enable-group: true
 masters:
   - 12345678
 working-directory: /home/abdtyx/code/JarvisGo/
+dsn: username:password@tcp(localhost:3306)/dbname?charset=utf8mb4&parseTime=True&loc=Local
