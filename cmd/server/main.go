@@ -37,5 +37,7 @@ func main() {
 	<-sigCh
 
 	// Shutdown
-	h.Shutdown()
+	if err = h.Shutdown(); err != nil {
+		log.Fatalln("main: shutdown handler: ", err)
+	}
 }

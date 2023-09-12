@@ -11,6 +11,7 @@ type Config struct {
 	EnableGroup      bool    `mapstructure:"enable-group"`
 	Masters          []int64 `mapstructure:"masters"`
 	WorkingDirectory string  `mapstructure:"working-directory"`
+	DSN              string  `mapstructure:"dsn"`
 }
 
 func LoadConfig() (*Config, error) {

@@ -62,8 +62,8 @@ func (h *Handler) Handle(c *gin.Context) {
 	return
 }
 
-func (h *Handler) Shutdown() {
-	h.svc.Shutdown()
+func (h *Handler) Shutdown() error {
+	return h.svc.Shutdown()
 }
 
 func (h *Handler) MsgHandler(msg service.Message) {

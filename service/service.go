@@ -1,31 +1,25 @@
 package service
 
 import (
-	"encoding/hex"
 	"errors"
 	"fmt"
 	"log"
 	"os"
-	"strconv"
 	"strings"
-	"sync"
 	"time"
 
 	"github.com/abdtyx/JarvisGo/config"
 	errdefs "github.com/abdtyx/JarvisGo/errors"
 	"github.com/abdtyx/JarvisGo/message"
+	"github.com/abdtyx/JarvisGo/model"
+	"gorm.io/driver/mysql"
+	"gorm.io/gorm"
 )
 
 type Service struct {
 	Cfg *config.Config
 	Log *log.Logger
-
-	// These are shared structures, should acquire lock when **update**
-	userBlacklist  []string
-	groupBlacklist []string
-	// Locks
-	userBlacklistLock  sync.Mutex
-	groupBlacklistLock sync.Mutex
+	db  *gorm.DB
 }
 
 type Message struct {
@@ -57,8 +51,12 @@ func InitService() (*Service, error) {
 
 	svc.Log.SetOutput(f)
 
-	// Initialize blacklist, skip if error
-	svc.readBlacklist()
+	// Initialize database
+	db, err := gorm.Open(mysql.Open(svc.Cfg.DSN), &gorm.Config{})
+	if err != nil {
+		panic("Service: Failed to open database connection, error: " + err.Error())
+	}
+	db = db.Debug()
 
 	return &svc, nil
 }
@@ -192,25 +190,19 @@ func (svc *Service) Usd(msg Message) {
 }
 
 func (svc *Service) CheckBlacklist(msg Message) (userFlag, groupFlag bool) {
-	// check member one by one
 	userFlag = false
 	groupFlag = false
+	var data model.BlacklistMember
+	if err := svc.db.Where("id = ? AND type = ?", msg.UserID, msg.MsgType).First(&data).Error; err == nil {
+		userFlag = true
+	}
 
-	for _, v := range svc.userBlacklist {
-		if v == strconv.FormatInt(msg.UserID, 10) {
-			userFlag = true
-			break
+	if svc.Cfg.EnableGroup {
+		if err := svc.db.Where("id = ? AND type = ?", msg.GroupID, msg.MsgType).First(&data).Error; err == nil {
+			groupFlag = true
 		}
 	}
 
-	if msg.MsgType == "group" && svc.Cfg.EnableGroup {
-		for _, v := range svc.groupBlacklist {
-			if v == strconv.FormatInt(msg.GroupID, 10) {
-				groupFlag = true
-				break
-			}
-		}
-	}
 	return userFlag, groupFlag
 }
 
@@ -228,43 +220,19 @@ func (svc *Service) checkMaster(msg Message) bool {
 	return false
 }
 
-func (svc *Service) readBlacklist() {
-	// open blacklist file, then read from blacklist
-	userBlacklistByte, err := os.ReadFile(svc.Cfg.WorkingDirectory + "jdata/UserBlacklist.txt")
-	if err != nil {
-		svc.userBlacklist = nil
-		svc.Log.Println("CheckBlacklist: ", err)
-		return
-	}
-	blacklist := hex.EncodeToString(userBlacklistByte)
-	svc.userBlacklist = strings.Split(blacklist, "\n")
-
-	groupBlacklistByte, err := os.ReadFile(svc.Cfg.WorkingDirectory + "jdata/GroupBlacklist.txt")
-	if err != nil {
-		svc.groupBlacklist = nil
-		svc.Log.Println("CheckBlacklist: ", err)
-		return
-	}
-	blacklist = hex.EncodeToString(groupBlacklistByte)
-	svc.groupBlacklist = strings.Split(blacklist, "\n")
-}
-
-func (svc *Service) writeBlacklist() {
-	// open blacklist file, then write to blacklist
-	toWrite := strings.Join(svc.userBlacklist, "\n")
-	os.WriteFile(svc.Cfg.WorkingDirectory+"jdata/UserBlacklist.txt", []byte(toWrite), 0644)
-
-	toWrite = strings.Join(svc.groupBlacklist, "\n")
-	os.WriteFile(svc.Cfg.WorkingDirectory+"jdata/GroupBlacklist.txt", []byte(toWrite), 0644)
-}
-
 /*
  * DONE:
  * Blacklist write back on terminating with signal handler
  */
-func (svc *Service) Shutdown() {
+func (svc *Service) Shutdown() error {
 	svc.Log.Println("Received interrupt or terminate signal.")
-	// Save blacklist
-	svc.writeBlacklist()
-	return
+	// Close database
+	if svc.db != nil {
+		db, err := svc.db.DB()
+		if err != nil {
+			return err
+		}
+		return db.Close()
+	}
+	return nil
 }
