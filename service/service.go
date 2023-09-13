@@ -124,18 +124,52 @@ func (svc *Service) Api(msg Message) {
 }
 
 func (svc *Service) Jeminder(msg Message) {
-	// TODO:
 	sig := "Jeminder"
+	// Group msg only
+	if msg.MsgType != "group" {
+		svc.SendAndLogMsg(msg, "Sir, please use this command in a group.", "", sig)
+		return
+	}
 	if !svc.checkMaster(msg) {
-		svc.Log.Println(errdefs.ErrPermissionDenied{Sig: sig, User: msg.UserID, Group: msg.GroupID})
+		resp := errdefs.ErrPermissionDenied{
+			BaseErr: errdefs.BaseErr{
+				Sig: sig, User: msg.UserID, Group: msg.GroupID,
+			},
+		}
+		svc.SendAndLogMsg(msg, "", resp.String(), sig)
 		return
 	}
 
+	var data model.Jeminder
+	if err := svc.db.Where("id = ?", msg.GroupID).First(&data).Error; err != nil {
+		// not found
+		data.Id = uint(msg.GroupID)
+		if err = svc.db.Create(&data).Error; err != nil {
+			// Found error when create
+			// modify MsgType to send errors to master only, preventing secrets from being revealed
+			msg.MsgType = "private"
+			svc.SendAndLogMsg(msg, "", err.Error(), sig)
+			return
+		}
+		svc.SendAndLogMsg(msg, "", "Jeminder on.", sig)
+		return
+	}
+
+	if err := svc.db.Delete(&data).Error; err != nil {
+		// Found error when delete
+		// modify MsgType to send errors to master only, preventing secrets from being revealed
+		msg.MsgType = "private"
+		svc.SendAndLogMsg(msg, "", err.Error(), sig)
+		return
+	}
+	svc.SendAndLogMsg(msg, "", "Jeminder off.", sig)
 	return
 }
 
 func (svc *Service) Blacklist(msg Message) {
 	// TODO:
+	// sig := "blacklist"
+
 	return
 }
 
@@ -192,7 +226,7 @@ func (svc *Service) Usd(msg Message) {
 func (svc *Service) CheckBlacklist(msg Message) (userFlag, groupFlag bool) {
 	userFlag = false
 	groupFlag = false
-	var data model.BlacklistMember
+	var data model.Blacklist
 	if err := svc.db.Where("id = ? AND type = ?", msg.UserID, msg.MsgType).First(&data).Error; err == nil {
 		userFlag = true
 	}
