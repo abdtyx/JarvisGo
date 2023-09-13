@@ -28,14 +28,14 @@ func (e *ErrPermissionDenied) Error() string {
 	return e.Error() + "Sir, you have no permission to this command."
 }
 
-type ErrWrongParams struct {
+type ErrWrongArgs struct {
 	BaseErr
 }
 
-func (e *ErrWrongParams) String() string {
-	return e.String() + "Sir, I'm afraid that you have delivered a wrong parameter."
+func (e *ErrWrongArgs) String() string {
+	return e.String() + "Sir, I'm afraid that you have delivered a wrong arg."
 }
 
-func (e *ErrWrongParams) Error() string {
-	return e.Error() + "Sir, I'm afraid that you have delivered a wrong parameter."
+func (e *ErrWrongArgs) Error() string {
+	return e.Error() + "Sir, I'm afraid that you have delivered a wrong arg."
 }
