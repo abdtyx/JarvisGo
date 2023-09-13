@@ -9,7 +9,7 @@ import (
 	"time"
 
 	"github.com/abdtyx/JarvisGo/config"
-	errdefs "github.com/abdtyx/JarvisGo/errors"
+	"github.com/abdtyx/JarvisGo/errdefs"
 	"github.com/abdtyx/JarvisGo/message"
 	"github.com/abdtyx/JarvisGo/model"
 	"gorm.io/driver/mysql"
