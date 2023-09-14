@@ -320,6 +320,7 @@ func (svc *Service) Blacklist(msg Message) {
 			resp += v.String()
 		}
 		svc.SendAndLogMsg(msg, resp, resp, sig)
+		return
 
 	default:
 		// modify MsgType to send errors to masters only, preventing secrets from being revealed
