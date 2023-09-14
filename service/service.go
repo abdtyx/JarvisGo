@@ -53,11 +53,11 @@ func InitService() (*Service, error) {
 	svc.Log.SetOutput(f)
 
 	// Initialize database
-	db, err := gorm.Open(mysql.Open(svc.Cfg.DSN), &gorm.Config{})
+	svc.db, err = gorm.Open(mysql.Open(svc.Cfg.DSN), &gorm.Config{})
 	if err != nil {
 		panic("Service: Failed to open database connection, error: " + err.Error())
 	}
-	db = db.Debug()
+	svc.db = svc.db.Debug()
 
 	return &svc, nil
 }
