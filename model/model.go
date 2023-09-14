@@ -12,6 +12,14 @@ func (b *Blacklist) String() string {
 	return fmt.Sprintf("Id: %v, Type: %v, Comment: %v\n", b.Id, b.Type, b.Comment)
 }
 
+func (Blacklist) TableName() string {
+	return "blacklists"
+}
+
 type Jeminder struct {
 	Id uint `gorm:"type:INT UNSIGNED NOT NULL DEFAULT 0;index;comment:identifier"`
+}
+
+func (Jeminder) TableName() string {
+	return "jeminders"
 }
