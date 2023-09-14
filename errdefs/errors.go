@@ -21,11 +21,11 @@ type ErrPermissionDenied struct {
 }
 
 func (e *ErrPermissionDenied) String() string {
-	return e.String() + "Sir, you have no permission to this command."
+	return e.BaseErr.String() + "Sir, you have no permission to this command."
 }
 
 func (e *ErrPermissionDenied) Error() string {
-	return e.Error() + "Sir, you have no permission to this command."
+	return e.BaseErr.Error() + "Sir, you have no permission to this command."
 }
 
 type ErrWrongArgs struct {
@@ -33,9 +33,9 @@ type ErrWrongArgs struct {
 }
 
 func (e *ErrWrongArgs) String() string {
-	return e.String() + "Sir, I'm afraid that you have delivered a wrong arg."
+	return e.BaseErr.String() + "Sir, I'm afraid that you have delivered a wrong arg."
 }
 
 func (e *ErrWrongArgs) Error() string {
-	return e.Error() + "Sir, I'm afraid that you have delivered a wrong arg."
+	return e.BaseErr.Error() + "Sir, I'm afraid that you have delivered a wrong arg."
 }
