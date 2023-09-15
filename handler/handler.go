@@ -32,6 +32,7 @@ func (node *HandlerNode) Add(route string, handler func(service.Message), fullEq
 				handler:   nil,
 				fullEqual: false,
 			}
+			curNode.next[route[i]] = newNode
 			curNode = newNode
 		}
 	}
