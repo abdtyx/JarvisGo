@@ -8,8 +8,14 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+type HandlerNode struct {
+	Next    map[string]*HandlerNode
+	handler func(service.Message)
+}
+
 type Handler struct {
-	svc *service.Service
+	svc      *service.Service
+	rootNode HandlerNode
 }
 
 var (
@@ -35,6 +41,9 @@ func InitHandler() (*Handler, error) {
 		return nil, err
 	}
 
+	// Timed message handler
+	go h.svc.TimedMsgHandler()
+
 	return &h, nil
 }
 
@@ -46,11 +55,7 @@ func (h *Handler) Handle(c *gin.Context) {
 		return
 	}
 
-	if msg.MsgType == "" {
-		// Heartbeat event
-		service.TimedMsgHandler()
-	} else {
-		// Message event
+	if msg.MsgType != "" {
 		h.MsgHandler(msg)
 	}
 
