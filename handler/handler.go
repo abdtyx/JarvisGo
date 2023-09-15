@@ -95,7 +95,7 @@ func InitHandler() (*Handler, error) {
 		return nil, err
 	}
 
-	fmt.Println("Jarvis kernel: Starting register handlers")
+	fmt.Println("[Jarvis kernel]: Starting register handlers")
 
 	// make trie
 	h.handlers = &HandlerNode{
@@ -120,7 +120,7 @@ func InitHandler() (*Handler, error) {
 	h.handlers.Add(`.Hocation`, h.svc.Hocation, false)
 	h.handlers.Add(`.usd`, h.svc.Usd, false)
 
-	fmt.Println("Jarvis kernel: All handlers registered")
+	fmt.Println("[Jarvis kernel]: All handlers registered")
 
 	// Timed message handler
 	go h.svc.TimedMsgHandler()
