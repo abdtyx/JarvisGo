@@ -159,16 +159,7 @@ func (h *Handler) MsgHandler(msg service.Message) {
 	}
 
 	// handle blacklist
-	if userFlag, groupFlag := h.svc.CheckBlacklist(msg); groupFlag {
-		return
-	} else if userFlag {
-		groupTag := ""
-		if msg.MsgType == "group" {
-			groupTag += fmt.Sprintf("From group %v:", msg.GroupID)
-		} else {
-			groupTag += "Not from group: "
-		}
-		h.svc.Log.Println(groupTag + fmt.Sprintf("Sir, a prohibited user %v tried to access my service", msg.UserID))
+	if userFlag, groupFlag := h.svc.CheckBlacklist(msg); userFlag || groupFlag {
 		return
 	}
 
