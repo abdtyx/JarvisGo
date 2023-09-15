@@ -2,35 +2,88 @@ package handler
 
 import (
 	"fmt"
-	"regexp"
 
 	"github.com/abdtyx/JarvisGo/service"
 	"github.com/gin-gonic/gin"
 )
 
 type HandlerNode struct {
-	Next    map[string]*HandlerNode
-	handler func(service.Message)
+	next      map[byte]*HandlerNode
+	handler   func(service.Message)
+	fullEqual bool
+}
+
+func IsSpace(b byte) bool {
+	return b == ' ' || b == '\t' || b == '\n' || b == '\r'
+}
+
+/**
+ * route should not contain any leading or trailing space. Otherwise the route won't work
+ * fullEqual: if this flag is set, the handler requires the msg to be like "    .help      "
+ */
+func (node *HandlerNode) Add(route string, handler func(service.Message), fullEqual bool) {
+	curNode := node
+	for i := 0; i < len(route); i++ {
+		if nxtNode, ok := curNode.next[route[i]]; ok {
+			curNode = nxtNode
+		} else {
+			newNode := &HandlerNode{
+				next:      make(map[byte]*HandlerNode),
+				handler:   nil,
+				fullEqual: false,
+			}
+			curNode = newNode
+		}
+	}
+	curNode.handler = handler
+	curNode.fullEqual = fullEqual
+}
+
+func (node *HandlerNode) Find(msg service.Message) {
+	route := msg.RawMsg
+	i := 0
+	curNode := node
+	// strip leading spaces
+	for ; i < len(route); i++ {
+		if !IsSpace(route[i]) {
+			break
+		}
+	}
+
+	// Find route
+	for ; i < len(route); i++ {
+		if IsSpace(route[i]) {
+			break
+		}
+		if nxtNode, ok := curNode.next[route[i]]; ok {
+			curNode = nxtNode
+		} else {
+			return
+		}
+	}
+	if curNode.handler != nil {
+		if !curNode.fullEqual {
+			curNode.handler(msg)
+		} else {
+			// fullEqual required
+			fullEqual := true
+			for ; i < len(route); i++ {
+				if !IsSpace(route[i]) {
+					// msg not full equal
+					fullEqual = false
+				}
+			}
+			if fullEqual {
+				curNode.handler(msg)
+			}
+		}
+	}
 }
 
 type Handler struct {
 	svc      *service.Service
-	rootNode HandlerNode
+	handlers *HandlerNode
 }
-
-var (
-	regBlacklist = regexp.MustCompile(`^\.blacklist`)
-	regPicRSA    = regexp.MustCompile(`^\.pic rsa`)
-	regPic       = regexp.MustCompile(`^\.pic`)
-	regTimetable = regexp.MustCompile(`^\.timetable`)
-	regWeather   = regexp.MustCompile(`^\.weather`)
-	regSuggest   = regexp.MustCompile(`^\.suggest`)
-	regLog       = regexp.MustCompile(`^\.log`)
-	regClog      = regexp.MustCompile(`^\.clog`)
-	regDlog      = regexp.MustCompile(`^\.dlog`)
-	regHocation  = regexp.MustCompile(`^\.Hocation`)
-	regUsd       = regexp.MustCompile(`^\.usd`)
-)
 
 func InitHandler() (*Handler, error) {
 	var h Handler
@@ -40,6 +93,33 @@ func InitHandler() (*Handler, error) {
 	if err != nil {
 		return nil, err
 	}
+
+	fmt.Println("Starting register handlers")
+
+	// make trie
+	h.handlers = &HandlerNode{
+		next:      make(map[byte]*HandlerNode),
+		handler:   nil,
+		fullEqual: false,
+	}
+	// handler registry
+	h.handlers.Add(`Jarvis`, h.svc.Jarvis, true)
+	h.handlers.Add(`.help`, h.svc.Jhelp, true)
+	h.handlers.Add(`.api`, h.svc.Api, true)
+	h.handlers.Add(`.Jeminder`, h.svc.Jeminder, true)
+	h.handlers.Add(`.blacklist`, h.svc.Blacklist, false)
+	h.handlers.Add(`.picrsa`, h.svc.PicRsa, false)
+	h.handlers.Add(`.pic`, h.svc.Pic, false)
+	h.handlers.Add(`.timetable`, h.svc.Timetable, false)
+	h.handlers.Add(`.weather`, h.svc.Weather, false)
+	h.handlers.Add(`.suggest`, h.svc.Suggest, false)
+	h.handlers.Add(`.log`, h.svc.Jlog, false)
+	h.handlers.Add(`.clog`, h.svc.Clog, false)
+	h.handlers.Add(`.dlog`, h.svc.Dlog, false)
+	h.handlers.Add(`.Hocation`, h.svc.Hocation, false)
+	h.handlers.Add(`.usd`, h.svc.Usd, false)
+
+	fmt.Println("Handlers registered")
 
 	// Timed message handler
 	go h.svc.TimedMsgHandler()
@@ -93,38 +173,7 @@ func (h *Handler) MsgHandler(msg service.Message) {
 	}
 
 	// handle msg
-	switch {
-	case msg.RawMsg == "Jarvis":
-		h.svc.Jarvis(msg)
-	case msg.RawMsg == ".help":
-		h.svc.Jhelp(msg)
-	case msg.RawMsg == ".api":
-		h.svc.Api(msg)
-	case msg.RawMsg == ".Jeminder":
-		h.svc.Jeminder(msg)
-	case regBlacklist.MatchString(msg.RawMsg):
-		h.svc.Blacklist(msg)
-	case regPicRSA.MatchString(msg.RawMsg):
-		h.svc.PicRsa(msg)
-	case regPic.MatchString(msg.RawMsg):
-		h.svc.Pic(msg)
-	case regTimetable.MatchString(msg.RawMsg):
-		h.svc.Timetable(msg)
-	case regWeather.MatchString(msg.RawMsg):
-		h.svc.Weather(msg)
-	case regSuggest.MatchString(msg.RawMsg):
-		h.svc.Suggest(msg)
-	case regLog.MatchString(msg.RawMsg):
-		h.svc.Jlog(msg)
-	case regClog.MatchString(msg.RawMsg):
-		h.svc.Clog(msg)
-	case regDlog.MatchString(msg.RawMsg):
-		h.svc.Dlog(msg)
-	case regHocation.MatchString(msg.RawMsg):
-		h.svc.Hocation(msg)
-	case regUsd.MatchString(msg.RawMsg):
-		h.svc.Usd(msg)
-	}
+	h.handlers.Find(msg)
 
 	return
 }
